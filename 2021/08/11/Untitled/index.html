@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tianliuyun.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="参考课程：安全牛——Kali Linux渗透测试课程  002 Kali Linux 安装 官网：https:&#x2F;&#x2F;www.kali.org&#x2F;  硬盘安装 下载安装镜像：https:&#x2F;&#x2F;www.kali.org&#x2F;get-kali&#x2F; 验证hash值 制作启动光盘 制作启动u盘 设置BIOS启动顺序——让u盘优先启动 启动安装  持久加密USB安装(略) Docker根据docker官网上的命令下载安">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kali Linux学习笔记(2)——Kali安装">
+<meta property="og:url" content="https://tianliuyun.github.io/2021/08/11/Untitled/index.html">
+<meta property="og:site_name" content="花与剑">
+<meta property="og:description" content="参考课程：安全牛——Kali Linux渗透测试课程  002 Kali Linux 安装 官网：https:&#x2F;&#x2F;www.kali.org&#x2F;  硬盘安装 下载安装镜像：https:&#x2F;&#x2F;www.kali.org&#x2F;get-kali&#x2F; 验证hash值 制作启动光盘 制作启动u盘 设置BIOS启动顺序——让u盘优先启动 启动安装  持久加密USB安装(略) Docker根据docker官网上的命令下载安">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-11T13:49:00.000Z">
+<meta property="article:modified_time" content="2021-08-12T15:02:20.163Z">
+<meta property="article:author" content="Derait">
+<meta property="article:tag" content="linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://tianliuyun.github.io/2021/08/11/Untitled/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Kali Linux学习笔记(2)——Kali安装 | 花与剑</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">花与剑</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tianliuyun.github.io/2021/08/11/Untitled/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Derait">
+      <meta itemprop="description" content="花有重开日，人无再少年">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="花与剑">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Kali Linux学习笔记(2)——Kali安装
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-08-11 21:49:00" itemprop="dateCreated datePublished" datetime="2021-08-11T21:49:00+08:00">2021-08-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-08-12 23:02:20" itemprop="dateModified" datetime="2021-08-12T23:02:20+08:00">2021-08-12</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Kali/" itemprop="url" rel="index"><span itemprop="name">Kali</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>参考课程：安全牛——Kali Linux渗透测试课程</p>
+</blockquote>
+<h2 id="002-Kali-Linux-安装"><a href="#002-Kali-Linux-安装" class="headerlink" title="002 Kali Linux 安装"></a>002 Kali Linux 安装</h2><blockquote>
+<p>官网：<a target="_blank" rel="noopener" href="https://www.kali.org/">https://www.kali.org/</a></p>
+</blockquote>
+<h3 id="硬盘安装"><a href="#硬盘安装" class="headerlink" title="硬盘安装"></a>硬盘安装</h3><ul>
+<li>下载安装镜像：<a target="_blank" rel="noopener" href="https://www.kali.org/get-kali/">https://www.kali.org/get-kali/</a></li>
+<li>验证hash值</li>
+<li>制作启动光盘</li>
+<li>制作启动u盘</li>
+<li>设置BIOS启动顺序——让u盘优先启动</li>
+<li>启动安装</li>
+</ul>
+<h3 id="持久加密USB安装"><a href="#持久加密USB安装" class="headerlink" title="持久加密USB安装"></a>持久加密USB安装</h3><p>(略)</p>
+<h3 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h3><p>根据docker官网上的命令下载安装即可</p>
+<p><a target="_blank" rel="noopener" href="https://hub.docker.com/u/kalilinux/">https://hub.docker.com/u/kalilinux/</a></p>
+<h3 id="虚拟机安装"><a href="#虚拟机安装" class="headerlink" title="虚拟机安装"></a>虚拟机安装</h3><h4 id="VMware"><a href="#VMware" class="headerlink" title="VMware"></a>VMware</h4><p><a target="_blank" rel="noopener" href="https://images.kali.org/virtual-images/kali-linux-2021.2-vmware-amd64.7z">https://images.kali.org/virtual-images/kali-linux-2021.2-vmware-amd64.7z</a></p>
+<p>下载后解压到kali2021.2，用VMware打开.vmx文件</p>
+<p>默认账户密码</p>
+<pre class="line-numbers language-none"><code class="language-none">kali
+kali<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p><a target="_blank" rel="noopener" href="https://www.aiweibk.com/203582.html">vmware 16最新密钥序列号-vmware workstation 16许可证密钥下载 v16.0.0(附安装破解教程) - 艾薇下载站</a></p>
+<h4 id="VirtualBox"><a href="#VirtualBox" class="headerlink" title="VirtualBox"></a>VirtualBox</h4><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_33336310/article/details/105456266">https://blog.csdn.net/qq_33336310/article/details/105456266</a></p>
+<h3 id="相关文章"><a href="#相关文章" class="headerlink" title="相关文章"></a>相关文章</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Riiiiiysl/articles/14528691.html">Kali2021改中文 - Riiiiiysl - 博客园</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42672685/article/details/119144458">Kali-Linux-2021.2更改默认root密码_玩电脑的辣条哥的博客-CSDN博客</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.ywnz.com/linuxxz/9396.html">Kali Linux 2021.2发布下载，附主要更新介绍及升级方法_Linux下载_云网牛站</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_46017292/article/details/116189713">Kali2021修改更新源_星辰Again的博客-CSDN博客_kali2021更新源</a></p>
+</blockquote>
+<h2 id="003-熟悉环境"><a href="#003-熟悉环境" class="headerlink" title="003 熟悉环境"></a>003 熟悉环境</h2><h4 id="Top-10-安全工具"><a href="#Top-10-安全工具" class="headerlink" title="Top 10 安全工具"></a>Top 10 安全工具</h4><ul>
+<li>aircrak-ng——无线wifi工具</li>
+<li>burpsuite——基于web的渗透测试工具(手动)，截断型代理，通过截断客户端发送的请求，变更数据，根据服务器返回信息判断是否存在安全漏洞</li>
+<li>hydra——密码破解</li>
+<li>john——密码破解</li>
+<li>maltego——图形化界面，根据目标系统有限信息进行信息收集</li>
+<li>metasploit framework——★★★渗透测试框架，黑客必备★★★</li>
+<li>nmap——著名的网络扫描工具(黑客帝国曾出现过)</li>
+<li>owasp-zap——基于web的渗透测试工具(和burpsuite同类)</li>
+<li>sqlmap——sql注入工具，基于python语言开发</li>
+<li>wireshark——抓包分析工具</li>
+</ul>
+<h4 id="字体调整"><a href="#字体调整" class="headerlink" title="字体调整"></a>字体调整</h4><pre class="line-numbers language-none"><code class="language-none">apt-get install gnome-tweak-tool
+gnome-tweaks tool<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+
+<h4 id="监视网络流量"><a href="#监视网络流量" class="headerlink" title="监视网络流量"></a>监视网络流量</h4><pre class="line-numbers language-none"><code class="language-none">apt-get  install gnome-applets-data<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>然后在工具栏单击右键——面板——添加新项目——网络监视器</p>
+<p>此时在工具栏新生成了一个”网络”，这就是我们的网络监视器了。右键单击设置属性</p>
+<p>根据网卡设置网络设备，我这里是<code>eth0</code>，其他根据自己的偏好设置</p>
+<h4 id="文件目录"><a href="#文件目录" class="headerlink" title="文件目录"></a>文件目录</h4><ul>
+<li><p><strong>bin</strong></p>
+<p>所有用户都可以使用的执行程序的目录</p>
+</li>
+<li><p><strong>boot</strong></p>
+<p>引导程序配置文件存放</p>
+</li>
+<li><p><strong>dev</strong></p>
+<p>存放所有的设备目录</p>
+</li>
+<li><p><strong>etc</strong></p>
+<p>存放配置文件的目录(主要)</p>
+</li>
+<li><p><strong>home</strong></p>
+<p>用户的主目录</p>
+</li>
+<li><p><strong>lib</strong></p>
+<p>各种库文件</p>
+</li>
+<li><p><strong>lost+found</strong></p>
+<p>出现问题的错误、丢失文件目录</p>
+</li>
+<li><p><strong>media</strong></p>
+<p>默认挂载外界设备的目录</p>
+</li>
+<li><p><strong>mnt</strong></p>
+<p>以前版本的挂载外界设备的目录</p>
+</li>
+<li><p><strong>opt</strong></p>
+<p>应用程序目录</p>
+</li>
+<li><p><strong>proc</strong></p>
+<p>存在于内存中，启动过程中生成，里面存放大量当前linux的配置参数，可以修改其中文件的配置实现对系统配置的修改</p>
+</li>
+<li><p><strong>root</strong></p>
+<p>root用户的主目录</p>
+</li>
+<li><p><strong>sbin</strong></p>
+<p>只有管理员才有权限执行的程序的目录</p>
+</li>
+<li><p><strong>tmp</strong></p>
+<p>临时目录</p>
+</li>
+<li><p><strong>usr</strong></p>
+<p>执行程序，共享文件</p>
+</li>
+<li><p><strong>var</strong></p>
+<p>存放日志等经常变化内容的目录</p>
+</li>
+</ul>
+<h4 id="共享文件夹"><a href="#共享文件夹" class="headerlink" title="共享文件夹"></a>共享文件夹</h4><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/call-me-dasheng/p/12771473.html">https://www.cnblogs.com/call-me-dasheng/p/12771473.html</a></p>
+<h2 id="004-熟悉BASH命令"><a href="#004-熟悉BASH命令" class="headerlink" title="004 熟悉BASH命令"></a>004 熟悉BASH命令</h2><blockquote>
+<p>shell——操作系统与人之间的接口</p>
+</blockquote>
+<h4 id="常用的bash命令"><a href="#常用的bash命令" class="headerlink" title="常用的bash命令"></a>常用的bash命令</h4><h5 id="ls"><a href="#ls" class="headerlink" title="ls"></a>ls</h5><p>列出当前目录内容<br>红色——压缩包，蓝色——目录，白色——文件，绿色——可执行程序</p>
+<pre class="line-numbers language-none"><code class="language-none">ls -l  
+#列出当前目录文件详细信息
+#开头: d是文件夹，-是文件，c表示设备文件，l表示这是一个链接，b表示块设备(如硬盘)
+drwxr-xr-x  2 tian tian     4096 11月 17  2020 公共
+drwxr-xr-x  2 tian tian     4096 11月 17  2020 模板
+drwxr-xr-x  2 tian tian     4096 11月 17  2020 视频
+drwxr-xr-x  2 tian tian     4096 11月 17  2020 图片
+drwxr-xr-x  2 tian tian     4096  8月  5 22:26 文档
+drwxr-xr-x  2 tian tian     4096  4月 29 14:47 下载
+drwxr-xr-x  2 tian tian     4096 11月 17  2020 音乐
+drwxr-xr-x 24 tian tian     4096  8月 10 12:59 桌面
+ls -a 
+#显示包括隐藏文件在内的文件
+#linux中.开头的均为隐藏文件
+ls -lh
+#以人类容易阅读的方式显示
+#可以看到文件大小(以常用单位)
+ls -lh --sort&#x3D;size
+#按照大小排序从大到小显示
+ls -lh --sort&#x3D;time
+#按照修改时间从近到远显示<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h5 id="cd、pwd"><a href="#cd、pwd" class="headerlink" title="cd、pwd"></a>cd、pwd</h5><pre class="line-numbers language-none"><code class="language-none">cd .. #转到上一级目录
+pwd #查看当前工作目录<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+
+<h5 id="cat、more、tail"><a href="#cat、more、tail" class="headerlink" title="cat、more、tail"></a>cat、more、tail</h5><pre class="line-numbers language-none"><code class="language-none">cat xxx #显示xxx文件内容
+cat &#x2F;etc&#x2F;passwd #显示所有账号
+more xxx #显示xxx文件内容(当显示的内容满了终端时会等待回车才查看下一屏)(显示当前屏占文件总数的百分比)
+less xxx #显示xxx文件内容(当显示的内容满了终端时会等待回车才查看下一屏)
+tail -? xxx #显示xxx文件最下面?行(默认为10行)
+watch -n ? xxx #每隔?秒显示一次xxx文件的信息<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h5 id="cp、rm"><a href="#cp、rm" class="headerlink" title="cp、rm"></a>cp、rm</h5><pre class="line-numbers language-none"><code class="language-none">rm xxx #删除xxx文件
+rm -r xxx #删除xxx文件夹
+cp ps ps1 #复制ps为ps1
+cp -r agent&#x2F; a #复制agent文件夹为a<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h5 id="top、ps"><a href="#top、ps" class="headerlink" title="top、ps"></a>top、ps</h5><pre class="line-numbers language-none"><code class="language-none">top #监视linux系统，实时信息
+#在该界面按下k，再输入进程的pid，回车，即可杀死对应进程
+#按下q退出
+ps #查看进程信息
+ps -ef #查看进程详细信息
+ps aux #与前一个命令相比，显示的列信息有所不同<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h5 id="grep"><a href="#grep" class="headerlink" title="grep"></a>grep</h5><pre class="line-numbers language-none"><code class="language-none">grep ? xxx #只显示xxx文件中带有?的行<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="ifconfig"><a href="#ifconfig" class="headerlink" title="ifconfig"></a>ifconfig</h5><pre class="line-numbers language-none"><code class="language-none">ifconfig #查看当前的网络配置信息ifconfig eth0 down #结束网卡ethoifconfig eth0 up #启动网卡etho<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="netstat、awk、sort"><a href="#netstat、awk、sort" class="headerlink" title="netstat、awk、sort"></a>netstat、awk、sort</h5><pre class="line-numbers language-none"><code class="language-none">netstat -pantu #查看当前计算机的网络产生了哪些tdp、udp连接<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="mount"><a href="#mount" class="headerlink" title="mount"></a>mount</h5><pre class="line-numbers language-none"><code class="language-none">mount #查看挂载目录的信息mount -o loop kali.iso &#x2F;media&#x2F;cdrom #将kali.iso挂载到&#x2F;media&#x2F;cdrom目录下<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="dmesg"><a href="#dmesg" class="headerlink" title="dmesg"></a>dmesg</h5><pre class="line-numbers language-none"><code class="language-none">dmesg #查看开机信息<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="find"><a href="#find" class="headerlink" title="find"></a>find</h5><pre class="line-numbers language-none"><code class="language-none">find &#x2F; -name nmap #在根目录下查找namp文件find &#x2F; -iname nmap #在根目录下查找namp文件(包括大写)find . -name &quot;ps*&quot; #查找当前目录下以ps开头的文件find . -name &quot;ps*&quot; -exec cp &#123;&#125; &#x2F;tmp&#x2F;&#123;&#125;.bak \; #查找当前目录下以ps开头的文件，并拷贝到tmp文件夹下，并以.bak作为后缀<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="whereis"><a href="#whereis" class="headerlink" title="whereis"></a>whereis</h5><pre class="line-numbers language-none"><code class="language-none">whereis nmap #查找 通过操作系统的包管理工具 下载的名为nmap的文件(通过一个数据库)updatedb #更新上述数据库whereis -b nmap #查找名为nmap的二进制文件<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="echo"><a href="#echo" class="headerlink" title="echo"></a>echo</h5><pre class="line-numbers language-none"><code class="language-none">echo &quot;hello world&quot; #输出hello world<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="vi"><a href="#vi" class="headerlink" title="vi"></a>vi</h5><pre class="line-numbers language-none"><code class="language-none">vi 1.txt     #编辑1.txt，若不存在该文件则创建#以下为进入vi界面后的操作:set number  #设置行标号:wq 		 #保存并退出:wq! 		 #强制保存并退出i			 #进入编辑模式，按esc退出dd 			 #删除光标所在行o 			 #在光标处下面插入一行，并进入编辑模式，按esc退出y			 #复制当前行p			 #将y复制的内容粘贴<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h4 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h4><p>将多个命令在同一行中输入</p>
+<pre class="line-numbers language-none"><code class="language-none">netstat -pantu | egrep -v &#39;0.0.0.0|:::&#39; | awk &#39;&#123;print $5&#125;&#39; | egrep -v &#39;and|Address&#39; | cut -d &#39;:&#39; -f 1 | sort | uniq &gt; ip#查看当前计算机的网络产生了哪些tdp、udp连接-&gt;过滤0.0.0.0|:::-&gt;只输出第五列-&gt;过滤and|Address-&gt;用:分割成块后输出第一块-&gt;排序-&gt;去重-&gt;重定向输出至文件名为ip的文件netstat -pantu | egrep -v &#39;0.0.0.0|:::&#39; | awk &#39;&#123;print $5&#125;&#39; | egrep -v &#39;and|Address&#39; | cut -d &#39;:&#39; -f 1 | sort | uniq &gt;&gt; ip#前面不变，最后&gt;&gt;表示追加信息至ip文件中cat &#x2F;etc&#x2F;passwd | grep ssl	#输出&#x2F;etc&#x2F;passwd文件的内容-&gt;只输出包含ssl的行cat aaa &amp; ls	#依次执行两个命令cat aaa &amp;&amp; ls	#前面命令执行成功才执行后面的命令cat aaa || ls	#前面命令执行失败才执行后面的命令<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h4 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h4><pre class="line-numbers language-none"><code class="language-none">vi 1.shchmod +x 1.sh.&#x2F;1.sh#以下shell脚本皆如此构建<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="1-sh"><a href="#1-sh" class="headerlink" title="1.sh"></a>1.sh</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token shebang important">#! /bin/bashecho -n "IP: "read $ipecho "your ip is:" $ip</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="99-sh"><a href="#99-sh" class="headerlink" title="99.sh"></a>99.sh</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token shebang important">#! /bin/bashfor n in `seq 9`do for m in `seq $n` do  echo -n "$m*$n=" `expr $m \* $n`"		" done echodone</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<h5 id="ping-sh"><a href="#ping-sh" class="headerlink" title="ping.sh"></a>ping.sh</h5><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token shebang important">#! /bin/bashfor n in `seq 254`do ping 192.168.1.$n -c 1 | grep ttl | awk '&#123;print $4&#125;' | awk -F: '&#123;print $1&#125;'done</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/linux/" rel="tag"># linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/07/pickle-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%B5%85%E6%9E%90/" rel="prev" title="pickle 反序列化漏洞浅析">
+      <i class="fa fa-chevron-left"></i> pickle 反序列化漏洞浅析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#002-Kali-Linux-%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">002 Kali Linux 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E7%9B%98%E5%AE%89%E8%A3%85"><span class="nav-number">1.1.</span> <span class="nav-text">硬盘安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E5%8A%A0%E5%AF%86USB%E5%AE%89%E8%A3%85"><span class="nav-number">1.2.</span> <span class="nav-text">持久加密USB安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Docker"><span class="nav-number">1.3.</span> <span class="nav-text">Docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85"><span class="nav-number">1.4.</span> <span class="nav-text">虚拟机安装</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#VMware"><span class="nav-number">1.4.1.</span> <span class="nav-text">VMware</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#VirtualBox"><span class="nav-number">1.4.2.</span> <span class="nav-text">VirtualBox</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B8%E5%85%B3%E6%96%87%E7%AB%A0"><span class="nav-number">1.5.</span> <span class="nav-text">相关文章</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#003-%E7%86%9F%E6%82%89%E7%8E%AF%E5%A2%83"><span class="nav-number">2.</span> <span class="nav-text">003 熟悉环境</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Top-10-%E5%AE%89%E5%85%A8%E5%B7%A5%E5%85%B7"><span class="nav-number">2.0.1.</span> <span class="nav-text">Top 10 安全工具</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%97%E4%BD%93%E8%B0%83%E6%95%B4"><span class="nav-number">2.0.2.</span> <span class="nav-text">字体调整</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9B%91%E8%A7%86%E7%BD%91%E7%BB%9C%E6%B5%81%E9%87%8F"><span class="nav-number">2.0.3.</span> <span class="nav-text">监视网络流量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95"><span class="nav-number">2.0.4.</span> <span class="nav-text">文件目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="nav-number">2.0.5.</span> <span class="nav-text">共享文件夹</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#004-%E7%86%9F%E6%82%89BASH%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">004 熟悉BASH命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84bash%E5%91%BD%E4%BB%A4"><span class="nav-number">3.0.1.</span> <span class="nav-text">常用的bash命令</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#ls"><span class="nav-number">3.0.1.1.</span> <span class="nav-text">ls</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#cd%E3%80%81pwd"><span class="nav-number">3.0.1.2.</span> <span class="nav-text">cd、pwd</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#cat%E3%80%81more%E3%80%81tail"><span class="nav-number">3.0.1.3.</span> <span class="nav-text">cat、more、tail</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#cp%E3%80%81rm"><span class="nav-number">3.0.1.4.</span> <span class="nav-text">cp、rm</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#top%E3%80%81ps"><span class="nav-number">3.0.1.5.</span> <span class="nav-text">top、ps</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#grep"><span class="nav-number">3.0.1.6.</span> <span class="nav-text">grep</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ifconfig"><span class="nav-number">3.0.1.7.</span> <span class="nav-text">ifconfig</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#netstat%E3%80%81awk%E3%80%81sort"><span class="nav-number">3.0.1.8.</span> <span class="nav-text">netstat、awk、sort</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#mount"><span class="nav-number">3.0.1.9.</span> <span class="nav-text">mount</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#dmesg"><span class="nav-number">3.0.1.10.</span> <span class="nav-text">dmesg</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#find"><span class="nav-number">3.0.1.11.</span> <span class="nav-text">find</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#whereis"><span class="nav-number">3.0.1.12.</span> <span class="nav-text">whereis</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#echo"><span class="nav-number">3.0.1.13.</span> <span class="nav-text">echo</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#vi"><span class="nav-number">3.0.1.14.</span> <span class="nav-text">vi</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AE%A1%E9%81%93"><span class="nav-number">3.0.2.</span> <span class="nav-text">管道</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#shell%E8%84%9A%E6%9C%AC"><span class="nav-number">3.0.3.</span> <span class="nav-text">shell脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-sh"><span class="nav-number">3.0.3.1.</span> <span class="nav-text">1.sh</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#99-sh"><span class="nav-number">3.0.3.2.</span> <span class="nav-text">99.sh</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ping-sh"><span class="nav-number">3.0.3.3.</span> <span class="nav-text">ping.sh</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Derait</p>
+  <div class="site-description" itemprop="description">花有重开日，人无再少年</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="link fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://xcy1010.cn/" title="http:&#x2F;&#x2F;xcy1010.cn&#x2F;" rel="noopener" target="_blank">xcy1010</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://poilzero.sipc115.club/" title="http:&#x2F;&#x2F;poilzero.sipc115.club&#x2F;" rel="noopener" target="_blank">poilzero</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021-08 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Derait</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

