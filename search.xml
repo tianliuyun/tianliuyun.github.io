@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title>新的起点</title>
-    <url>/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/</url>
-    <content><![CDATA[<p>严格地说，这是我的第三个博客。</p>
-<p>第一个博客搭建在zsq大佬的服务器上，我基本没有操作；第二个博客搭建在阿里赠送的云服务器上，写了两篇文章后便置之不理。</p>
-<p>29日的秋期考核让我意识到我必须做出一些改变了。博客既是我成长的记录，也是我成长的辅助。今天，就是新的起点。</p>
-<p>不要做被世界改变的人，要做改变世界的人。    ——Derait·Buendia</p>
-]]></content>
+<search> 
+  
+  
+    
+    <entry>
+      <title>新的起点</title>
+      <link href="/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/"/>
+      <url>/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/</url>
+      
+        <content type="html"><![CDATA[<p>严格地说，这是我的第三个博客。</p><p>第一个博客搭建在zsq大佬的服务器上，我基本没有操作；第二个博客搭建在阿里赠送的云服务器上，写了两篇文章后便置之不理。</p><p>29日的秋期考核让我意识到我必须做出一些改变了。博客既是我成长的记录，也是我成长的辅助。今天，就是新的起点。</p><p>不要做被世界改变的人，要做改变世界的人。    ——Derait·Buendia</p>]]></content>
+      
+      
       <categories>
-        <category>生活</category>
+          
+          <category> 生活 </category>
+          
       </categories>
-      <tags>
-        <tag>随记</tag>
-      </tags>
-  </entry>
+      
+      
+        <tags>
+            
+            <tag> 随记 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
 </search>
