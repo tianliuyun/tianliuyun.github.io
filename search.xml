@@ -1,25 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>11月学习计划</title>
-    <url>/2021/11/05/11%E6%9C%88%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<p>从去年开始接触安全，到现在，很多东西仍然是一知半解。</p>
-<p>之前的学习方式也有些 “面向笔记学习“ 的感觉，”做了笔记就说明我学了“，这样的想法未免可笑。</p>
-<p>既然想要做渗透，精通python才能不沦为“脚本小子”；后端开发也是我本学期要自学的，否则在团队里真的无作用了。</p>
-<p>本月目标：</p>
-<ul>
-<li>《Python基础教程》</li>
-<li>《Java核心技术卷一》</li>
-</ul>
-]]></content>
-      <categories>
-        <category>生活</category>
-      </categories>
-      <tags>
-        <tag>规划</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>[网鼎杯 2020 青龙组]AreUSerialz</title>
     <url>/2021/11/11/1/</url>
     <content><![CDATA[<blockquote>
@@ -60,6 +41,25 @@
       <tags>
         <tag>Web</tag>
         <tag>代码审计</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>11月学习计划</title>
+    <url>/2021/11/05/11%E6%9C%88%E5%AD%A6%E4%B9%A0/</url>
+    <content><![CDATA[<p>从去年开始接触安全，到现在，很多东西仍然是一知半解。</p>
+<p>之前的学习方式也有些 “面向笔记学习“ 的感觉，”做了笔记就说明我学了“，这样的想法未免可笑。</p>
+<p>既然想要做渗透，精通python才能不沦为“脚本小子”；后端开发也是我本学期要自学的，否则在团队里真的无作用了。</p>
+<p>本月目标：</p>
+<ul>
+<li>《Python基础教程》</li>
+<li>《Java核心技术卷一》</li>
+</ul>
+]]></content>
+      <categories>
+        <category>生活</category>
+      </categories>
+      <tags>
+        <tag>规划</tag>
       </tags>
   </entry>
   <entry>
