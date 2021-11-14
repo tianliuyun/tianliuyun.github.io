@@ -195,6 +195,139 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/dongman_1.jpg">
+      <meta itemprop="name" content="Derait">
+      <meta itemprop="description" content="花有重开日，人无再少年">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="花与剑">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/" class="post-title-link" itemprop="url">BUUCTF【Crypto】1~12题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-11-14 17:00:00 / 修改时间：17:02:52" itemprop="dateCreated datePublished" datetime="2021-11-14T17:00:00+08:00">2021-11-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CTF%E6%97%A5%E5%B8%B8%E7%BB%83%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">CTF日常练习</span></a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>平台：<a target="_blank" rel="noopener" href="https://buuoj.cn/">https://buuoj.cn/</a></p>
+<p>解出数从高到低排序</p>
+</blockquote>
+<h3 id="MD5"><a href="#MD5" class="headerlink" title="MD5"></a>MD5</h3><p>MD5碰撞：<a target="_blank" rel="noopener" href="https://www.somd5.com/">https://www.somd5.com/</a></p>
+<h3 id="一眼就解密"><a href="#一眼就解密" class="headerlink" title="一眼就解密"></a>一眼就解密</h3><p>base64解码：<a target="_blank" rel="noopener" href="https://base64.us/">https://base64.us/</a></p>
+<h3 id="Url编码"><a href="#Url编码" class="headerlink" title="Url编码"></a>Url编码</h3><p>url解码：<a target="_blank" rel="noopener" href="https://www.bejson.com/enc/urlencode/">https://www.bejson.com/enc/urlencode/</a></p>
+<h3 id="看我回旋踢"><a href="#看我回旋踢" class="headerlink" title="看我回旋踢"></a>看我回旋踢</h3><p>凯撒密码解码：<a target="_blank" rel="noopener" href="http://www.metools.info/code/c70.html">http://www.metools.info/code/c70.html</a></p>
+<h3 id="摩丝"><a href="#摩丝" class="headerlink" title="摩丝"></a>摩丝</h3><p>摩斯电码解码：<a target="_blank" rel="noopener" href="http://www.zhongguosou.com/zonghe/moErSiCodeConverter.aspx?d=123">http://www.zhongguosou.com/zonghe/moErSiCodeConverter.aspx?d=123</a></p>
+<h3 id="password"><a href="#password" class="headerlink" title="password"></a>password</h3><p>根据题目提示，密码为姓名加日期：zs19900315</p>
+<h3 id="变异凯撒"><a href="#变异凯撒" class="headerlink" title="变异凯撒"></a>变异凯撒</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afZ_r9VYfScOeO_UL^RWUc</span><br></pre></td></tr></table></figure>
+
+<p>将前四个字母对照<code>flag</code>可以发现，分别移了5，6，7，8位，因此用python脚本解决</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;afZ_r9VYfScOeO_UL^RWUc&quot;</span><br><span class="line">cnt = 5</span><br><span class="line">for i in secret:</span><br><span class="line">    print(chr(ord(i)+cnt), end=&quot;&quot;)</span><br><span class="line">    cnt += 1</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Quoted-printable"><a href="#Quoted-printable" class="headerlink" title="Quoted-printable"></a>Quoted-printable</h3><p>Quoted-printable解码：<a target="_blank" rel="noopener" href="http://web.chacuo.net/charsetquotedprintable/">http://web.chacuo.net/charsetquotedprintable/</a></p>
+<h3 id="Rabbit"><a href="#Rabbit" class="headerlink" title="Rabbit"></a>Rabbit</h3><p>在线Rabbit算法加密解密：<a target="_blank" rel="noopener" href="http://www.jsons.cn/rabbitencrypt/">http://www.jsons.cn/rabbitencrypt/</a></p>
+<h3 id="篱笆墙的影子"><a href="#篱笆墙的影子" class="headerlink" title="篱笆墙的影子"></a>篱笆墙的影子</h3><p>观察即可发现，偶数位0、2、4、6构成了<code>flag</code>，用python脚本解决</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;felhaagv&#123;ewtehtehfilnakgw&#125;&quot;</span><br><span class="line">res = &quot;&quot;</span><br><span class="line">cnt = 0</span><br><span class="line">for i in secret:</span><br><span class="line">    if(cnt % 2 == 0):</span><br><span class="line">        print(i,end=&quot;&quot;)</span><br><span class="line">        res += i</span><br><span class="line">    cnt += 1</span><br><span class="line"># flag&#123;wethinkw</span><br></pre></td></tr></table></figure>
+
+<p>只拿到了一半flag，继续观察剩下的密文，修改代码为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;felhaagv&#123;ewtehtehfilnakgw&#125;&quot;</span><br><span class="line">res_1 = &quot;&quot;</span><br><span class="line">res_2 = &quot;&quot;</span><br><span class="line">cnt = 0</span><br><span class="line">for i in secret:</span><br><span class="line">    if(cnt % 2 == 0):</span><br><span class="line">        res_1 += i</span><br><span class="line">    else:</span><br><span class="line">        res_2 += i</span><br><span class="line">    cnt += 1</span><br><span class="line">print(res_1+res_2)</span><br></pre></td></tr></table></figure>
+
+<p>得到flag</p>
+<h3 id="RSA"><a href="#RSA" class="headerlink" title="RSA"></a>RSA</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">在一次RSA密钥对生成中，假设p=473398607161，q=4511491，e=17</span><br><span class="line">求解出d作为flga提交</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ISHobbyst/article/details/108918079">https://blog.csdn.net/ISHobbyst/article/details/108918079</a></p>
+<p>加密过程</p>
+<p>n=p*q</p>
+<p>c=m^e mod n</p>
+<p>c=pow(m,e,n)</p>
+<p>解密过程</p>
+<p>m=c^d mod n</p>
+<p>m=pow(c,d,n)</p>
+<p>求解私钥d</p>
+<p>d = gmpy2.invert(e, (p-1)*(q-1))</p>
+<p>一般来说，n，e是公开的，但是由于n一般是两个大素数的乘积，所以我们很难求解出d，所以RSA加密就是利用现代无法快速实现大素数的分解，所存在的一种安全的非对称加密。</p>
+</blockquote>
+<p>用python脚本解出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import gmpy2</span><br><span class="line">p = 473398607161</span><br><span class="line">q = 4511491</span><br><span class="line">e = 17</span><br><span class="line">s = (p-1)*(q-1)</span><br><span class="line">d = gmpy2.invert(e,s)</span><br><span class="line">print (&quot;dec: &quot; + str(d))</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="丢失的MD5"><a href="#丢失的MD5" class="headerlink" title="丢失的MD5"></a>丢失的MD5</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import hashlib   </span><br><span class="line">for i in range(32,127):</span><br><span class="line">    for j in range(32,127):</span><br><span class="line">        for k in range(32,127):</span><br><span class="line">            m=hashlib.md5()</span><br><span class="line">            m.update(&#x27;TASC&#x27;+chr(i)+&#x27;O3RJMV&#x27;+chr(j)+&#x27;WDJKX&#x27;+chr(k)+&#x27;ZM&#x27;)</span><br><span class="line">            des=m.hexdigest()</span><br><span class="line">            if &#x27;e9032&#x27; in des and &#x27;da&#x27; in des and &#x27;911513&#x27; in des:</span><br><span class="line">                print(des)</span><br></pre></td></tr></table></figure>
+
+<p>回显</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;C:/Windows/Temp/360zip$Temp/360$3/md5.py&quot;, line 6, in &lt;module&gt;</span><br><span class="line">    m.update(&#x27;TASC&#x27;+chr(i)+&#x27;O3RJMV&#x27;+chr(j)+&#x27;WDJKX&#x27;+chr(k)+&#x27;ZM&#x27;)</span><br><span class="line">TypeError: Unicode-objects must be encoded before hashing</span><br></pre></td></tr></table></figure>
+
+<p>修改python代码，得到flag</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m.update(&#x27;TASC&#x27;.encode(&#x27;utf-8&#x27;)+chr(i).encode(&#x27;utf-8&#x27;)+&#x27;O3RJMV&#x27;.encode(&#x27;utf-8&#x27;)+chr(j).encode(&#x27;utf-8&#x27;)+&#x27;WDJKX&#x27;.encode(&#x27;utf-8&#x27;)+chr(k).encode(&#x27;utf-8&#x27;)+&#x27;ZM&#x27;.encode(&#x27;utf-8&#x27;))</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/11/1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -639,7 +772,7 @@
       <div class="post-toc-wrap sidebar-panel">
       </div>
       <!--/noindex-->
-
+       
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
     <img class="site-author-image" itemprop="image" alt="Derait"
@@ -652,7 +785,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -665,7 +798,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -697,7 +830,6 @@
     </ul>
   </div>
 
-      </div>
 
     </div>
   </aside>

